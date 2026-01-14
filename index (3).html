@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burger Town - Premium Burgers in India</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .nav-link {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #FCD34D;
+        }
+        
+        .nav-link.active {
+            color: #FCD34D;
+            border-bottom: 2px solid #FCD34D;
+        }
+        
+        .burger-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .burger-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .hero-bg {
+            background: linear-gradient(135deg, #DC2626 0%, #7C2D12 100%);
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-slide {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #FCD34D;
+            color: #7C2D12;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Navigation -->
+    <nav class="bg-red-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold flex items-center">
+                    <span class="text-yellow-300">🍔</span>
+                    <span class="ml-2">Burger Town</span>
+                </div>
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a class="nav-link active" data-section="home">Home</a>
+                    <a class="nav-link" data-section="about">About</a>
+                    <a class="nav-link" data-section="menu">Menu</a>
+                    <a class="nav-link" data-section="hours">Hours</a>
+                    <a class="nav-link" data-section="contact">Contact</a>
+                    <a class="nav-link" data-section="signin">Member Sign In</a>
+                    <button id="cart-btn" class="relative bg-yellow-400 text-red-800 px-4 py-2 rounded-full font-bold hover:bg-yellow-300 transition">
+                        🛒 Cart
+                        <span id="cart-count" class="cart-badge">0</span>
+                    </button>
+                </div>
+                <div class="md:hidden flex items-center space-x-4">
+                    <button id="cart-btn-mobile" class="relative bg-yellow-400 text-red-800 px-3 py-1 rounded-full font-bold">
+                        🛒
+                        <span id="cart-count-mobile" class="cart-badge">0</span>
+                    </button>
+                    <button id="mobile-menu-btn" class="text-white focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 space-y-2">
+                <a class="nav-link block py-2" data-section="home">Home</a>
+                <a class="nav-link block py-2" data-section="about">About</a>
+                <a class="nav-link block py-2" data-section="menu">Menu</a>
+                <a class="nav-link block py-2" data-section="hours">Hours</a>
+                <a class="nav-link block py-2" data-section="contact">Contact</a>
+                <a class="nav-link block py-2" data-section="signin">Member Sign In</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <div class="bg-red-700 text-white p-4 rounded-t-lg flex justify-between items-center">
+                <h3 class="text-xl font-bold">🛒 Your Cart</h3>
+                <button id="close-cart" class="text-2xl hover:text-yellow-300">&times;</button>
+            </div>
+            <div id="cart-items" class="p-4">
+                <!-- Cart items will be added here -->
+            </div>
+            <div id="cart-empty" class="p-8 text-center text-gray-500">
+                <div class="text-5xl mb-4">🍔</div>
+                <p>Your cart is empty!</p>
+                <p class="text-sm">Add some delicious burgers</p>
+            </div>
+            <div id="cart-footer" class="hidden border-t p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-xl font-bold">Total:</span>
+                    <span id="cart-total" class="text-2xl font-bold text-red-600">₹0</span>
+                </div>
+                <button id="checkout-btn" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition text-lg">
+                    Proceed to Pay 💳
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <div class="bg-green-600 text-white p-4 rounded-t-lg flex justify-between items-center">
+                <h3 class="text-xl font-bold">💳 Payment Options</h3>
+                <button id="close-payment" class="text-2xl hover:text-yellow-300">&times;</button>
+            </div>
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <p class="text-gray-600">Total Amount to Pay:</p>
+                    <p id="payment-amount" class="text-4xl font-bold text-green-600">₹0</p>
+                </div>
+
+                <!-- Payment Options -->
+                <div class="space-y-4">
+                    <!-- Cash on Delivery -->
+                    <div id="cod-option" class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-500 transition">
+                        <div class="flex items-center">
+                            <input type="radio" name="payment" id="cod" class="mr-3 w-5 h-5">
+                            <label for="cod" class="flex items-center cursor-pointer flex-1">
+                                <span class="text-3xl mr-3">💵</span>
+                                <div>
+                                    <h4 class="font-bold text-lg">Cash on Delivery</h4>
+                                    <p class="text-sm text-gray-500">Pay when your order arrives</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Online Payment -->
+                    <div id="online-option" class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-500 transition">
+                        <div class="flex items-center">
+                            <input type="radio" name="payment" id="online" class="mr-3 w-5 h-5">
+                            <label for="online" class="flex items-center cursor-pointer flex-1">
+                                <span class="text-3xl mr-3">📱</span>
+                                <div>
+                                    <h4 class="font-bold text-lg">Online Payment (UPI/QR)</h4>
+                                    <p class="text-sm text-gray-500">Pay using UPI, Google Pay, PhonePe, Paytm</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QR Code Section (Hidden initially) -->
+                <div id="qr-section" class="hidden mt-6 text-center animate-slide">
+                    <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg p-6 text-white">
+                        <h4 class="font-bold text-lg mb-4">Scan QR Code to Pay</h4>
+                        <div class="flex justify-center mb-4">
+                            <!-- QR Code SVG -->
+                            <svg class="qr-code pulse-animation" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="200" height="200" fill="white"/>
+                                <!-- QR Pattern -->
+                                <rect x="20" y="20" width="40" height="40" fill="black"/>
+                                <rect x="25" y="25" width="30" height="30" fill="white"/>
+                                <rect x="30" y="30" width="20" height="20" fill="black"/>
+                                
+                                <rect x="140" y="20" width="40" height="40" fill="black"/>
+                                <rect x="145" y="25" width="30" height="30" fill="white"/>
+                                <rect x="150" y="30" width="20" height="20" fill="black"/>
+                                
+                                <rect x="20" y="140" width="40" height="40" fill="black"/>
+                                <rect x="25" y="145" width="30" height="30" fill="white"/>
+                                <rect x="30" y="150" width="20" height="20" fill="black"/>
+                                
+                                <!-- Data Pattern -->
+                                <rect x="70" y="20" width="10" height="10" fill="black"/>
+                                <rect x="90" y="20" width="10" height="10" fill="black"/>
+                                <rect x="110" y="20" width="10" height="10" fill="black"/>
+                                <rect x="70" y="40" width="10" height="10" fill="black"/>
+                                <rect x="100" y="40" width="10" height="10" fill="black"/>
+                                <rect x="120" y="40" width="10" height="10" fill="black"/>
+                                
+                                <rect x="20" y="70" width="10" height="10" fill="black"/>
+                                <rect x="40" y="70" width="10" height="10" fill="black"/>
+                                <rect x="20" y="90" width="10" height="10" fill="black"/>
+                                <rect x="30" y="100" width="10" height="10" fill="black"/>
+                                <rect x="50" y="80" width="10" height="10" fill="black"/>
+                                
+                                <rect x="70" y="70" width="60" height="60" rx="5" fill="black"/>
+                                <rect x="80" y="80" width="40" height="40" rx="3" fill="white"/>
+                                <rect x="90" y="90" width="20" height="20" fill="black"/>
+                                
+                                <rect x="140" y="70" width="10" height="10" fill="black"/>
+                                <rect x="160" y="80" width="10" height="10" fill="black"/>
+                                <rect x="150" y="100" width="10" height="10" fill="black"/>
+                                <rect x="170" y="90" width="10" height="10" fill="black"/>
+                                
+                                <rect x="70" y="140" width="10" height="10" fill="black"/>
+                                <rect x="90" y="150" width="10" height="10" fill="black"/>
+                                <rect x="110" y="140" width="10" height="10" fill="black"/>
+                                <rect x="80" y="170" width="10" height="10" fill="black"/>
+                                <rect x="100" y="160" width="10" height="10" fill="black"/>
+                                <rect x="120" y="170" width="10" height="10" fill="black"/>
+                                
+                                <rect x="140" y="140" width="10" height="10" fill="black"/>
+                                <rect x="160" y="150" width="10" height="10" fill="black"/>
+                                <rect x="150" y="170" width="10" height="10" fill="black"/>
+                                <rect x="170" y="160" width="10" height="10" fill="black"/>
+                            </svg>
+                        </div>
+                        <p class="text-sm mb-2">UPI ID: <strong>burgertown@upi</strong></p>
+                        <div class="flex justify-center space-x-4 mt-4">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/100px-UPI-Logo-vector.svg.png" alt="UPI" class="h-8 bg-white rounded px-2 py-1" onerror="this.style.display='none'">
+                            <span class="bg-white text-purple-600 px-3 py-1 rounded font-bold text-sm">GPay</span>
+                            <span class="bg-white text-purple-600 px-3 py-1 rounded font-bold text-sm">PhonePe</span>
+                            <span class="bg-white text-blue-600 px-3 py-1 rounded font-bold text-sm">Paytm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COD Section (Hidden initially) -->
+                <div id="cod-section" class="hidden mt-6 animate-slide">
+                    <div class="bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg p-6 text-white text-center">
+                        <div class="text-5xl mb-3">💵</div>
+                        <h4 class="font-bold text-lg mb-2">Cash on Delivery Selected</h4>
+                        <p class="text-sm">Please keep exact change ready</p>
+                        <p class="mt-2 text-xl font-bold" id="cod-amount">₹0</p>
+                    </div>
+                </div>
+
+                <!-- Delivery Details -->
+                <div id="delivery-form" class="hidden mt-6 space-y-4 animate-slide">
+                    <h4 class="font-bold text-lg text-gray-800">📍 Delivery Details</h4>
+                    <input type="text" id="customer-name" placeholder="Your Full Name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500">
+                    <input type="tel" id="customer-phone" placeholder="Phone Number" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500">
+                    <textarea id="customer-address" placeholder="Delivery Address" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500"></textarea>
+                    <button id="place-order-btn" class="w-full bg-green-600 text-white py-4 rounded-lg font-bold hover:bg-green-700 transition text-xl">
+                        ✅ Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Success Modal -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content text-center p-8">
+            <div class="text-8xl mb-4">🎉</div>
+            <h3 class="text-3xl font-bold text-green-600 mb-4">Order Placed Successfully!</h3>
+            <p class="text-gray-600 mb-2">Thank you for ordering from Burger Town!</p>
+            <p class="text-gray-600 mb-6">Your delicious burgers are being prepared.</p>
+            <div class="bg-gray-100 rounded-lg p-4 mb-6">
+                <p class="text-sm text-gray-500">Order ID</p>
+                <p id="order-id" class="text-2xl font-bold text-red-600">#BT00000</p>
+            </div>
+            <p class="text-sm text-gray-500 mb-6">Estimated delivery: 30-45 minutes</p>
+            <button id="close-success" class="bg-red-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-red-700 transition">
+                Continue Shopping
+            </button>
+        </div>
+    </div>
+
+    <!-- Home Section -->
+    <section id="home" class="section active">
+        <div class="hero-bg text-white py-20">
+            <div class="container mx-auto px-4 text-center">
+                <h1 class="text-5xl md:text-6xl font-bold mb-6 animate-slide">Welcome to Burger Town</h1>
+                <p class="text-xl md:text-2xl mb-8 animate-slide">The Ultimate Destination for Premium Burgers in India</p>
+                <p class="text-lg mb-8 text-yellow-300">🌿 100% Vegetarian & Chicken Options - No Beef!</p>
+                <button class="nav-link bg-yellow-400 text-red-800 px-8 py-3 rounded-full text-lg font-bold hover:bg-yellow-300 transition" data-section="menu">
+                    Order Now 🛒
+                </button>
+            </div>
+        </div>
+        
+        <div class="container mx-auto px-4 py-16">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center p-6 bg-white rounded-lg shadow-lg">
+                    <div class="text-5xl mb-4">🍔</div>
+                    <h3 class="text-xl font-bold mb-2">Fresh Ingredients</h3>
+                    <p class="text-gray-600">We use only the freshest, highest-quality ingredients sourced locally</p>
+                </div>
+                <div class="text-center p-6 bg-white rounded-lg shadow-lg">
+                    <div class="text-5xl mb-4">⚡</div>
+                    <h3 class="text-xl font-bold mb-2">Fast Delivery</h3>
+                    <p class="text-gray-600">Quick delivery to your doorstep in 30-45 minutes</p>
+                </div>
+                <div class="text-center p-6 bg-white rounded-lg shadow-lg">
+                    <div class="text-5xl mb-4">💳</div>
+                    <h3 class="text-xl font-bold mb-2">Easy Payment</h3>
+                    <p class="text-gray-600">Pay with Cash, UPI, Google Pay, PhonePe or Paytm</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section">
+        <div class="container mx-auto px-4 py-16">
+            <h2 class="text-4xl font-bold text-center mb-12 text-red-700">About Burger Town</h2>
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                    <h3 class="text-2xl font-bold mb-4 text-red-600">Our Story</h3>
+                    <p class="text-gray-700 mb-4">
+                        Established in 2015, Burger Town has been serving the finest burgers across India. What started as a small food truck in Mumbai has now grown into a beloved chain with locations in major cities across the country.
+                    </p>
+                    <p class="text-gray-700 mb-4">
+                        Our mission is simple: to create the perfect burger experience with 100% vegetarian and premium chicken options. We believe that a great burger starts with quality ingredients, innovative recipes, and a passion for food that brings people together.
+                    </p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                    <h3 class="text-2xl font-bold mb-4 text-red-600">Why Choose Us?</h3>
+                    <ul class="space-y-3 text-gray-700">
+                        <li class="flex items-start">
+                            <span class="text-yellow-500 mr-2">✓</span>
+                            <span>100% fresh, premium quality chicken (No Beef)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-yellow-500 mr-2">✓</span>
+                            <span>Wide variety of vegetarian options</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-yellow-500 mr-2">✓</span>
+                            <span>Locally sourced vegetables and premium ingredients</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-yellow-500 mr-2">✓</span>
+                            <span>Easy online payment with UPI & QR code</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-yellow-500 mr-2">✓</span>
+                            <span>Cash on Delivery available</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-yellow-500 mr-2">✓</span>
+                            <span>Competitive pricing with exceptional value</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-gradient-to-r from-red-600 to-red-800 rounded-lg shadow-lg p-8 text-white text-center">
+                    <h3 class="text-2xl font-bold mb-4">Join Our Community</h3>
+                    <p class="mb-4">Become a Burger Town member and enjoy exclusive deals, early access to new menu items, and special birthday surprises!</p>
+                    <button class="nav-link bg-yellow-400 text-red-800 px-6 py-2 rounded-full font-bold hover:bg-yellow-300 transition" data-section="signin">
+                        Sign Up Today
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="section">
+        <div class="container mx-auto px-4 py-16">
+            <h2 class="text-4xl font-bold text-center mb-4 text-red-700">Our Menu</h2>
+            <p class="text-center text-gray-600 mb-2">All prices in Indian Rupees (₹)</p>
+            <p class="text-center text-green-600 font-semibold mb-12">🌿 Vegetarian & Chicken Options Only - No Beef!</p>
+            
+            <!-- Chicken Burgers -->
+            <div class="mb-12">
+                <h3 class="text-3xl font-bold mb-6 text-orange-600">🍗 Chicken Burgers</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="Crispy Chicken Burger" data-price="179">
+                        <div class="bg-orange-500 h-48 flex items-center justify-center text-white text-6xl">🍗</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Crispy Chicken Burger</h4>
+                            <p class="text-gray-600 mb-4">Crispy fried chicken, coleslaw, mayo, lettuce on toasted bun</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹179</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="Spicy Chicken Burger" data-price="199">
+                        <div class="bg-red-500 h-48 flex items-center justify-center text-white text-6xl">🌶️</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Spicy Chicken Burger</h4>
+                            <p class="text-gray-600 mb-4">Spicy chicken patty, jalapeños, hot sauce, cheese, lettuce</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹199</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="Cheese Chicken Burger" data-price="219">
+                        <div class="bg-yellow-500 h-48 flex items-center justify-center text-white text-6xl">🧀</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Cheese Chicken Burger</h4>
+                            <p class="text-gray-600 mb-4">Grilled chicken, double cheese, caramelized onions, special sauce</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹219</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="Tandoori Chicken Burger" data-price="229">
+                        <div class="bg-rose-500 h-48 flex items-center justify-center text-white text-6xl">🔥</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Tandoori Chicken Burger</h4>
+                            <p class="text-gray-600 mb-4">Tandoori spiced chicken, mint chutney, onions, fresh veggies</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹229</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="BBQ Chicken Burger" data-price="239">
+                        <div class="bg-amber-700 h-48 flex items-center justify-center text-white text-6xl">🍖</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">BBQ Chicken Burger</h4>
+                            <p class="text-gray-600 mb-4">Smoky BBQ chicken, crispy onion rings, cheddar cheese</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹239</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="Double Chicken Burger" data-price="299">
+                        <div class="bg-orange-600 h-48 flex items-center justify-center text-white text-6xl">🍔</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Double Chicken Burger</h4>
+                            <p class="text-gray-600 mb-4">Two crispy chicken patties, extra cheese, special Town sauce</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹299</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vegetarian Burgers -->
+            <div class="mb-12">
+                <h3 class="text-3xl font-bold mb-6 text-green-600">🌿 Vegetarian Delights</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="Paneer Tikka Burger" data-price="169">
+                        <div class="bg-green-500 h-48 flex items-center justify-center text-white text-6xl">🥬</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Paneer Tikka Burger</h4>
+                            <p class="text-gray-600 mb-4">Spicy paneer tikka patty, mint chutney, onions, fresh veggies</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹169</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="Veggie Supreme" data-price="149">
+                        <div class="bg-lime-500 h-48 flex items-center justify-center text-white text-6xl">🌱</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Veggie Supreme</h4>
+                            <p class="text-gray-600 mb-4">Mixed vegetable patty, cheese, lettuce, tomato, special sauce</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹149</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="Spicy Aloo Tikki Burger" data-price="129">
+                        <div class="bg-amber-500 h-48 flex items-center justify-center text-white text-6xl">🥔</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Spicy Aloo Tikki Burger</h4>
+                            <p class="text-gray-600 mb-4">Classic aloo tikki, tangy sauces, onion, lettuce, Indian spices</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹129</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="Cheese Burst Veg Burger" data-price="189">
+                        <div class="bg-yellow-400 h-48 flex items-center justify-center text-white text-6xl">🧀</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Cheese Burst Veg Burger</h4>
+                            <p class="text-gray-600 mb-4">Veg patty stuffed with cheese, melted cheddar, creamy sauce</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹189</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="Mushroom Veg Burger" data-price="179">
+                        <div class="bg-stone-500 h-48 flex items-center justify-center text-white text-6xl">🍄</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Mushroom Veg Burger</h4>
+                            <p class="text-gray-600 mb-4">Sautéed mushrooms, veg patty, Swiss cheese, garlic mayo</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹179</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden" data-name="Mexican Veg Burger" data-price="199">
+                        <div class="bg-red-400 h-48 flex items-center justify-center text-white text-6xl">🌮</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Mexican Veg Burger</h4>
+                            <p class="text-gray-600 mb-4">Spicy bean patty, jalapeños, salsa, guacamole, tortilla crisps</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹199</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium Burgers -->
+            <div class="mb-12">
+                <h3 class="text-3xl font-bold mb-6 text-purple-600">👑 Premium Collection</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden border-2 border-yellow-400" data-name="The Town Special Chicken" data-price="349">
+                        <div class="bg-purple-500 h-48 flex items-center justify-center text-white text-6xl">👑</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">The Town Special Chicken</h4>
+                            <p class="text-gray-600 mb-4">Double chicken patty, egg, cheese, special Town sauce, premium bun</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹349</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden border-2 border-yellow-400" data-name="Ultimate Paneer Burger" data-price="299">
+                        <div class="bg-indigo-500 h-48 flex items-center justify-center text-white text-6xl">⭐</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Ultimate Paneer Burger</h4>
+                            <p class="text-gray-600 mb-4">Double paneer patty, three cheese blend, caramelized onions</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹299</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="burger-card bg-white rounded-lg shadow-lg overflow-hidden border-2 border-yellow-400" data-name="Loaded Chicken Supreme" data-price="379">
+                        <div class="bg-pink-500 h-48 flex items-center justify-center text-white text-6xl">🏆</div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-2">Loaded Chicken Supreme</h4>
+                            <p class="text-gray-600 mb-4">Triple chicken, bacon, egg, jalapeños, four cheese, special sauce</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-red-600">₹379</span>
+                                <button class="add-to-cart bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sides & Drinks -->
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 text-red-600">🍟 Sides</h3>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center pb-3 border-b">
+                                <div class="flex-1">
+                                    <h4 class="font-bold">French Fries</h4>
+                                    <p class="text-sm text-gray-600">Classic crispy fries</p>
+                                </div>
+                                <span class="text-xl font-bold text-red-600 mr-4">₹79</span>
+                                <button class="add-to-cart-side bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700" data-name="French Fries" data-price="79">Add</button>
+                            </div>
+                            <div class="flex justify-between items-center pb-3 border-b">
+                                <div class="flex-1">
+                                    <h4 class="font-bold">Cheese Fries</h4>
+                                    <p class="text-sm text-gray-600">Loaded with cheese sauce</p>
+                                </div>
+                                <span class="text-xl font-bold text-red-600 mr-4">₹99</span>
+                                <button class="add-to-cart-side bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700" data-name="Cheese Fries" data-price="99">Add</button>
+                            </div>
+                            <div class="flex justify-between items-center pb-3 border-b">
+                                <div class="flex-1">
+                                    <h4 class="font-bold">Onion Rings</h4>
+                                    <p class="text-sm text-gray-600">Crispy golden rings</p>
+                                </div>
+                                <span class="text-xl font-bold text-red-600 mr-4">₹89</span>
+                                <button class="add-to-cart-side bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700" data-name="Onion Rings" data-price="89">Add</button>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex-1">
+                                    <h4 class="font-bold">Chicken Nuggets (6 pcs)</h4>
+                                    <p class="text-sm text-gray-600">Tender chicken bites</p>
+                                </div>
+                                <span class="text-xl font-bold text-red-600 mr-4">₹119</span>
+                                <button class="add-to-cart-side bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700" data-name="Chicken Nuggets" data-price="119">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 text-red-600">🥤 Beverages</h3>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center pb-3 border-b">
+                                <div class="flex-1">
+                                    <h4 class="font-bold">Soft Drinks</h4>
+                                    <p class="text-sm text-gray-600">Coke, Pepsi, Sprite, Fanta</p>
+                                </div>
+                                <span class="text-xl font-bold text-red-600 mr-4">₹49</span>
+                                <button class="add-to-cart-side bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700" data-name="Soft Drink" data-price="49">Add</button>
+                            </div>
+                            <div class="flex justify-between items-center pb-3 border-b">
+                                <div class="flex-1">
+                                    <h4 class="font-bold">Milkshakes</h4>
+                                    <p class="text-sm text-gray-600">Chocolate, Vanilla, Strawberry</p>
+                                </div>
+                                <span class="text-xl font-bold text-red-600 mr-4">₹99</span>
+                                <button class="add-to-cart-side bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700" data-name="Milkshake" data-price="99">Add</button>
+                            </div>
+                            <div class="flex justify-between items-center pb-3 border-b">
+                                <div class="flex-1">
+                                    <h4 class="font-bold">Fresh Juice</h4>
+                                    <p class="text-sm text-gray-600">Orange, Apple, Mixed fruit</p>
+                                </div>
+                                <span class="text-xl font-bold text-red-600 mr-4">₹79</span>
+                                <button class="add-to-cart-side bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700" data-name="Fresh Juice" data-price="79">Add</button>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex-1">
+                                    <h4 class="font-bold">Iced Coffee</h4>
+                                    <p class="text-sm text-gray-600">Cold brew perfection</p>
+                                </div>
+                                <span class="text-xl font-bold text-red-600 mr-4">₹89</span>
+                                <button class="add-to-cart-side bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700" data-name="Iced Coffee" data-price="89">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hours Section -->
+    <section id="hours" class="section">
+        <div class="container mx-auto px-4 py-16">
+            <h2 class="text-4xl font-bold text-center mb-12 text-red-700">Opening Hours</h2>
+            <div class="max-w-3xl mx-auto">
+                <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center py-3 border-b">
+                            <span class="text-lg font-semibold">Monday - Thursday</span>
+                            <span class="text-lg text-gray-700">11:00 AM - 10:00 PM</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b">
+                            <span class="text-lg font-semibold">Friday - Saturday</span>
+                            <span class="text-lg text-gray-700">11:00 AM - 11:30 PM</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3">
+                            <span class="text-lg font-semibold">Sunday</span>
+                            <span class="text-lg text-gray-700">12:00 PM - 10:00 PM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-red-600 to-red-800 rounded-lg shadow-lg p-8 text-white text-center">
+                    <h3 class="text-2xl font-bold mb-4">Special Holiday Hours</h3>
+                    <p class="mb-4">We're open on most holidays! Check our social media for specific holiday timings.</p>
+                    <p class="text-yellow-300 font-semibold">🎉 Extended hours during festive seasons!</p>
+                </div>
+
+                <div class="mt-8 grid md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                        <div class="text-4xl mb-3">🏪</div>
+                        <h4 class="font-bold mb-2">Multiple Locations</h4>
+                        <p class="text-gray-600 text-sm">Available across major cities in India</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                        <div class="text-4xl mb-3">🚗</div>
+                        <h4 class="font-bold mb-2">Delivery Available</h4>
+                        <p class="text-gray-600 text-sm">Fast delivery to your doorstep</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                        <div class="text-4xl mb-3">📱</div>
+                        <h4 class="font-bold mb-2">Online Ordering</h4>
+                        <p class="text-gray-600 text-sm">Order via app or website</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section">
+        <div class="container mx-auto px-4 py-16">
+            <h2 class="text-4xl font-bold text-center mb-12 text-red-700">Contact Us</h2>
+            <div class="max-w-4xl mx-auto">
+                <div class="grid md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-red-600">Get in Touch</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <span class="text-2xl mr-4">📍</span>
+                                <div>
+                                    <h4 class="font-bold">Address</h4>
+                                    <p class="text-gray-600">123 MG Road, Connaught Place<br>New Delhi - 110001<br>India</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-2xl mr-4">📞</span>
+                                <div>
+                                    <h4 class="font-bold">Phone</h4>
+                                    <p class="text-gray-600">+91 98765 43210<br>+91 98765 43211</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-2xl mr-4">📧</span>
+                                <div>
+                                    <h4 class="font-bold">Email</h4>
+                                    <p class="text-gray-600">info@burgertown.in<br>support@burgertown.in</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-2xl mr-4">🕒</span>
+                                <div>
+                                    <h4 class="font-bold">Customer Service Hours</h4>
+                                    <p class="text-gray-600">9:00 AM - 9:00 PM (All Days)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-red-600">Send us a Message</h3>
+                        <form id="contact-form" class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Name</label>
+                                <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500" placeholder="Your Name">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                                <input type="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500" placeholder="your.email@example.com">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Phone</label>
+                                <input type="tel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500" placeholder="+91 98765 43210">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Message</label>
+                                <textarea required rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500" placeholder="Your message here..."></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-lg shadow-lg p-8 text-center">
+                    <h3 class="text-2xl font-bold mb-4 text-red-800">Follow Us on Social Media</h3>
+                    <div class="flex justify-center space-x-6 text-4xl">
+                        <a href="#" class="hover:scale-110 transition">📘</a>
+                        <a href="#" class="hover:scale-110 transition">📷</a>
+                        <a href="#" class="hover:scale-110 transition">🐦</a>
+                        <a href="#" class="hover:scale-110 transition">▶️</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sign In Section -->
+    <section id="signin" class="section">
+        <div class="container mx-auto px-4 py-16">
+            <h2 class="text-4xl font-bold text-center mb-12 text-red-700">Member Portal</h2>
+            <div class="max-w-md mx-auto">
+                <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+                    <h3 class="text-2xl font-bold mb-6 text-center text-red-600">Sign In</h3>
+                    <form id="signin-form" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Email or Phone</label>
+                            <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500" placeholder="your.email@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Password</label>
+                            <input type="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500" placeholder="Enter your password">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2">
+                                <span class="text-sm text-gray-600">Remember me</span>
+                            </label>
+                            <a href="#" class="text-sm text-red-600 hover:underline">Forgot password?</a>
+                        </div>
+                        <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition">Sign In</button>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-center text-red-600">Create Account</h3>
+                    <form id="signup-form" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Full Name</label>
+                            <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500" placeholder="Your Full Name">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                            <input type="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500" placeholder="your.email@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Phone Number</label>
+                            <input type="tel" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500" placeholder="+91 98765 43210">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Password</label>
+                            <input type="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500" placeholder="Create a password">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Confirm Password</label>
+                            <input type="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500" placeholder="Confirm your password">
+                        </div>
+                        <div class="flex items-start">
+                            <input type="checkbox" required class="mt-1 mr-2">
+                            <span class="text-sm text-gray-600">I agree to receive promotional emails and exclusive member offers from Burger Town</span>
+                        </div>
+                        <button type="submit" class="w-full bg-yellow-400 text-red-800 py-3 rounded-lg font-bold hover:bg-yellow-300 transition">Create Account</button>
+                    </form>
+                </div>
+
+                <div class="mt-6 bg-gradient-to-r from-red-600 to-red-800 rounded-lg shadow-lg p-6 text-white text-center">
+                    <h4 class="text-xl font-bold mb-3">Member Benefits</h4>
+                    <ul class="text-sm space-y-2">
+                        <li>✓ Exclusive discounts and offers</li>
+                        <li>✓ Early access to new menu items</li>
+                        <li>✓ Birthday special surprises</li>
+                        <li>✓ Loyalty points on every order</li>
+                        <li>✓ Free delivery on select orders</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8 mb-6">
+                <div>
+                    <h4 class="text-xl font-bold mb-4 text-yellow-400">Burger Town</h4>
+                    <p class="text-gray-300 text-sm">India's favorite burger destination since 2015. Quality, taste, and service in every bite.</p>
+                    <p class="text-green-400 text-sm mt-2">🌿 100% Veg & Chicken Options</p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="nav-link text-gray-300 hover:text-yellow-400" data-section="menu">Menu</a></li>
+                        <li><a href="#" class="nav-link text-gray-300 hover:text-yellow-400" data-section="about">About Us</a></li>
+                        <li><a href="#" class="nav-link text-gray-300 hover:text-yellow-400" data-section="hours">Opening Hours</a></li>
+                        <li><a href="#" class="nav-link text-gray-300 hover:text-yellow-400" data-section="contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Payment Options</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li>💵 Cash on Delivery</li>
+                        <li>📱 UPI / QR Code</li>
+                        <li>💳 Google Pay</li>
+                        <li>💳 PhonePe / Paytm</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Locations</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li>Delhi NCR</li>
+                        <li>Mumbai</li>
+                        <li>Bangalore</li>
+                        <li>Pune</li>
+                        <li>Hyderabad</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
+                <p>&copy; 2024 Burger Town India. All rights reserved. | Made with ❤️ for burger lovers</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Cart functionality
+        let cart = [];
+        
+        // DOM Elements
+        const cartModal = document.getElementById('cart-modal');
+        const paymentModal = document.getElementById('payment-modal');
+        const successModal = document.getElementById('success-modal');
+        const cartItems = document.getElementById('cart-items');
+        const cartEmpty = document.getElementById('cart-empty');
+        const cartFooter = document.getElementById('cart-footer');
+        const cartTotal = document.getElementById('cart-total');
+        const cartCount = document.getElementById('cart-count');
+        const cartCountMobile = document.getElementById('cart-count-mobile');
+        const paymentAmount = document.getElementById('payment-amount');
+        const codAmount = document.getElementById('cod-amount');
+        
+        // Update cart count
+        function updateCartCount() {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = count;
+            cartCountMobile.textContent = count;
+        }
+        
+        // Calculate total
+        function calculateTotal() {
+            return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        }
+        
+        // Render cart
+        function renderCart() {
+            if (cart.length === 0) {
+                cartItems.innerHTML = '';
+                cartEmpty.classList.remove('hidden');
+                cartFooter.classList.add('hidden');
+            } else {
+                cartEmpty.classList.add('hidden');
+                cartFooter.classList.remove('hidden');
+                
+                cartItems.innerHTML = cart.map((item, index) => `
+                    <div class="flex items-center justify-between py-3 border-b">
+                        <div class="flex-1">
+                            <h4 class="font-bold">${item.name}</h4>
+                            <p class="text-sm text-gray-500">₹${item.price} each</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="updateQuantity(${index}, -1)" class="w-8 h-8 bg-gray-200 rounded-full hover:bg-gray-300 font-bold">-</button>
+                            <span class="font-bold w-8 text-center">${item.quantity}</span>
+                            <button onclick="updateQuantity(${index}, 1)" class="w-8 h-8 bg-gray-200 rounded-full hover:bg-gray-300 font-bold">+</button>
+                            <button onclick="removeItem(${index})" class="text-red-500 hover:text-red-700 ml-2">🗑️</button>
+                        </div>
+                        <div class="ml-4 text-right">
+                            <span class="font-bold text-red-600">₹${item.price * item.quantity}</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                cartTotal.textContent = `₹${calculateTotal()}`;
+            }
+            updateCartCount();
+        }
+        
+        // Add to cart
+        function addToCart(name, price) {
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({ name, price: parseInt(price), quantity: 1 });
+            }
+            renderCart();
+            
+            // Show notification
+            showNotification(`${name} added to cart!`);
+        }
+        
+        // Update quantity
+        function updateQuantity(index, change) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            renderCart();
+        }
+        
+        // Remove item
+        function removeItem(index) {
+            cart.splice(index, 1);
+            renderCart();
+        }
+        
+        // Show notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 2000);
+        }
+        
+        // Navigation functionality
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('.section');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetSection = this.getAttribute('data-section');
+                if (!targetSection) return;
+                
+                sections.forEach(section => section.classList.remove('active'));
+                const target = document.getElementById(targetSection);
+                if (target) {
+                    target.classList.add('active');
+                    target.classList.add('animate-slide');
+                    setTimeout(() => target.classList.remove('animate-slide'), 500);
+                }
+                
+                navLinks.forEach(navLink => navLink.classList.remove('active'));
+                this.classList.add('active');
+                mobileMenu.classList.add('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Cart button events
+        document.getElementById('cart-btn').addEventListener('click', () => {
+            cartModal.classList.add('active');
+        });
+        
+        document.getElementById('cart-btn-mobile').addEventListener('click', () => {
+            cartModal.classList.add('active');
+        });
+        
+        document.getElementById('close-cart').addEventListener('click', () => {
+            cartModal.classList.remove('active');
+        });
+        
+        // Checkout button
+        document.getElementById('checkout-btn').addEventListener('click', () => {
+            if (cart.length > 0) {
+                cartModal.classList.remove('active');
+                paymentModal.classList.add('active');
+                const total = calculateTotal();
+                paymentAmount.textContent = `₹${total}`;
+                codAmount.textContent = `₹${total}`;
+            }
+        });
+        
+        document.getElementById('close-payment').addEventListener('click', () => {
+            paymentModal.classList.remove('active');
+            resetPaymentForm();
+        });
+        
+        // Payment options
+        const codOption = document.getElementById('cod-option');
+        const onlineOption = document.getElementById('online-option');
+        const qrSection = document.getElementById('qr-section');
+        const codSection = document.getElementById('cod-section');
+        const deliveryForm = document.getElementById('delivery-form');
+        
+        codOption.addEventListener('click', () => {
+            document.getElementById('cod').checked = true;
+            codOption.classList.add('border-green-500');
+            onlineOption.classList.remove('border-green-500');
+            qrSection.classList.add('hidden');
+            codSection.classList.remove('hidden');
+            deliveryForm.classList.remove('hidden');
+        });
+        
+        onlineOption.addEventListener('click', () => {
+            document.getElementById('online').checked = true;
+            onlineOption.classList.add('border-green-500');
+            codOption.classList.remove('border-green-500');
+            codSection.classList.add('hidden');
+            qrSection.classList.remove('hidden');
+            deliveryForm.classList.remove('hidden');
+        });
+        
+        // Place order
+        document.getElementById('place-order-btn').addEventListener('click', () => {
+            const name = document.getElementById('customer-name').value;
+            const phone = document.getElementById('customer-phone').value;
+            const address = document.getElementById('customer-address').value;
+            
+            if (!name || !phone || !address) {
+                alert('Please fill in all delivery details');
+                return;
+            }
+            
+            // Generate order ID
+            const orderId = 'BT' + Math.floor(100000 + Math.random() * 900000);
+            document.getElementById('order-id').textContent = '#' + orderId;
+            
+            // Show success modal
+            paymentModal.classList.remove('active');
+            successModal.classList.add('active');
+            
+            // Clear cart
+            cart = [];
+            renderCart();
+            resetPaymentForm();
+        });
+        
+        document.getElementById('close-success').addEventListener('click', () => {
+            successModal.classList.remove('active');
+            // Navigate to menu
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById('menu').classList.add('active');
+        });
+        
+        function resetPaymentForm() {
+            document.getElementById('cod').checked = false;
+            document.getElementById('online').checked = false;
+            codOption.classList.remove('border-green-500');
+            onlineOption.classList.remove('border-green-500');
+            qrSection.classList.add('hidden');
+            codSection.classList.add('hidden');
+            deliveryForm.classList.add('hidden');
+            document.getElementById('customer-name').value = '';
+            document.getElementById('customer-phone').value = '';
+            document.getElementById('customer-address').value = '';
+        }
+        
+        // Add to cart buttons for burger cards
+        document.querySelectorAll('.burger-card .add-to-cart').forEach(button => {
+            button.addEventListener('click', function() {
+                const card = this.closest('.burger-card');
+                const name = card.getAttribute('data-name');
+                const price = card.getAttribute('data-price');
+                addToCart(name, price);
+                
+                this.textContent = 'Added! ✓';
+                this.classList.add('bg-green-600');
+                this.classList.remove('bg-red-600');
+                setTimeout(() => {
+                    this.textContent = 'Add to Cart';
+                    this.classList.remove('bg-green-600');
+                    this.classList.add('bg-red-600');
+                }, 1500);
+            });
+        });
+        
+        // Add to cart buttons for sides
+        document.querySelectorAll('.add-to-cart-side').forEach(button => {
+            button.addEventListener('click', function() {
+                const name = this.getAttribute('data-name');
+                const price = this.getAttribute('data-price');
+                addToCart(name, price);
+                
+                this.textContent = '✓';
+                this.classList.add('bg-green-600');
+                this.classList.remove('bg-red-600');
+                setTimeout(() => {
+                    this.textContent = 'Add';
+                    this.classList.remove('bg-green-600');
+                    this.classList.add('bg-red-600');
+                }, 1500);
+            });
+        });
+        
+        // Close modals when clicking outside
+        cartModal.addEventListener('click', (e) => {
+            if (e.target === cartModal) cartModal.classList.remove('active');
+        });
+        
+        paymentModal.addEventListener('click', (e) => {
+            if (e.target === paymentModal) {
+                paymentModal.classList.remove('active');
+                resetPaymentForm();
+            }
+        });
+
+        // Contact form submission
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your message! We will get back to you soon.');
+            this.reset();
+        });
+
+        // Sign in form submission
+        document.getElementById('signin-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Welcome back to Burger Town!');
+        });
+
+        // Sign up form submission
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Welcome to Burger Town! Your account has been created.');
+            this.reset();
+        });
+    </script>
+
+</body>
+</html>
